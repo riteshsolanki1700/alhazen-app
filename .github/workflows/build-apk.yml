@@ -1,7 +1,10 @@
 name: Build Alhazen APK
 on:
   push:
+    branches: [main]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,3 +18,11 @@ jobs:
       - run: cp app/build/outputs/apk/release/app-release.apk Alhazen.apk
       - uses: actions/upload-artifact@v4
         with: { name: Alhazen-APK, path: Alhazen.apk }
+      - name: Save APK to the apk branch
+        run: |
+          mkdir out && cp Alhazen.apk out/ && cd out
+          git init -q -b apk
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add Alhazen.apk && git commit -qm "Built APK from ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}" apk
